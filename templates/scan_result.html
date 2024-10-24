@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeScan Results</title>
+    <link rel="stylesheet" href="/static/style2.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Scan Results</h1>
+
+        {% for file_path, file_data in scan_result['scan_result'].items() %}
+        <div class="file-result">
+            <h2>File: {{ file_path }}</h2>
+            
+            {% if file_data.get('generated_at') %}
+                <p><strong>Generated at:</strong> {{ file_data['generated_at'] }}</p>
+            {% endif %}
+
+            {% if file_data.get('metrics') %}
+                <h3>Metrics</h3>
+                <ul>
+                    {% for metric, value in file_data['metrics']['_totals'].items() %}
+                    <li>{{ metric.replace('_', ' ').title() }}: {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No metrics available for this file.</p>
+            {% endif %}
+
+            {% if file_data.get('results') %}
+                <h3>Vulnerabilities</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Confidence</th>
+                            <th>Line Number</th>
+                            <th>Issue</th>
+                            <th>More Info</th>
+                            <th>Code Snippet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in file_data['results'] %}
+                        <tr>
+                            <td>{{ result['issue_severity'] }}</td>
+                            <td>{{ result['issue_confidence'] }}</td>
+                            <td>{{ result['line_number'] }}</td>
+                            <td>{{ result['issue_text'] }}</td>
+                            <td><a href="{{ result['more_info'] }}" target="_blank">Learn more</a></td>
+                            <td><pre>{{ result['code'] }}</pre></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No vulnerabilities found in this file.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

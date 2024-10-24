@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeScan - Select Repository</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Select a Repository to Scan</h1>
+        </header>
+
+        <main>
+            <ul class="repo-list">
+                {% for repo in repos %}
+                <li>
+                    <a href="/scan-results?access_token={{ access_token }}&repo_url={{ repo.clone_url }}">{{ repo.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </main>
+
+        <!-- <footer>
+            <p>&copy; 2024 CodeScan. All rights reserved.</p>
+        </footer> -->
+    </div>
+</body>
+</html>
