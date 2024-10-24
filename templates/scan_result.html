@@ -4,12 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeScan Results</title>
-    <link rel="stylesheet" href="/static/style2.css">
+    <link rel="stylesheet" href="/static/scan_result.css">
 </head>
-<body>
-    <div class="container">
+<body class="dark-theme">
+    <header class="header">
+        <!-- <div class="logo">
+            <img src="/static/logo.jpg" alt="Logo">
+        </div> -->
+        
         <h1>Scan Results</h1>
+    </header>
+    
+    <div class="repo-info">
+        <h2>Repository: {{ repo_owner }}/{{ repo_name }}</h2>
+        <p><strong>Visibility:</strong> {{ repo_visibility }}</p>
+        <p><strong>Primary Language:</strong> {{ repo_language }}</p>
+    </div>
 
+    <div class="container">
         {% for file_path, file_data in scan_result['scan_result'].items() %}
         <div class="file-result">
             <h2>File: {{ file_path }}</h2>

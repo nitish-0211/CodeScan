@@ -1,0 +1,137 @@
+/* Body and Overall Styling */
+body {
+    background-color: #0d1117; /* Dark background similar to GitHub's dark theme */
+    color: #c9d1d9; /* Light gray text for better contrast */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3 {
+    color: #ffffff; /* White for headings */
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #161b22; /* Slightly lighter gray background for containers */
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* File Result Section */
+.file-result {
+    background-color: #21262d; /* Darker background for individual file results */
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+}
+
+/* Table for Vulnerabilities */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table thead {
+    background-color: #30363d; /* Dark gray for table headers */
+    color: #f0f6fc; /* White text for table headers */
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border: 1px solid #30363d; /* Border matching the table background for a clean look */
+    text-align: left;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #161b22; /* Alternate row background for better readability */
+}
+
+/* Links */
+a {
+    color: #58a6ff; /* GitHub-style blue links */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Code Snippet Styling */
+pre {
+    background-color: #0d1117; /* Background for code snippets */
+    color: #c9d1d9; /* Light text */
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+/* Repo Information */
+.repo-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #161b22; /* Background for repo information */
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #30363d; /* Match border with other elements */
+}
+
+.repo-info h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.repo-info p {
+    margin: 5px 0;
+}
+
+/* Badge Styles */
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    margin-right: 10px;
+}
+
+.badge-private {
+    background-color: #da3633; /* Red background for private repo */
+    color: white;
+}
+
+.badge-public {
+    background-color: #238636; /* Green background for public repo */
+    color: white;
+}
+
+.badge-language {
+    background-color: #6e7681; /* Neutral gray background for language badge */
+    color: white;
+}
+
+/* Button Styling (if needed) */
+button {
+    background-color: #21262d;
+    color: #58a6ff;
+    border: 1px solid #30363d;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #30363d;
+}
+
+/* Logo */
+.logo img {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+}

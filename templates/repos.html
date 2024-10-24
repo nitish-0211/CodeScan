@@ -17,15 +17,18 @@
             <ul class="repo-list">
                 {% for repo in repos %}
                 <li>
-                    <a href="/scan-results?access_token={{ access_token }}&repo_url={{ repo.clone_url }}">{{ repo.name }}</a>
+                    <div class="repo-info">
+                        <h3>{{ repo.owner }}/{{ repo.name }}</h3>
+                        <p>Visibility: <span class="badge {{ 'badge-public' if repo.private == False else 'badge-private' }}">{{ 'Public' if repo.private == False else 'Private' }}</span></p>
+                        <p>Primary Language: <span class="badge badge-language">{{ repo.language }}</span></p>
+                    </div>
+                    <div class="repo-actions">
+                        <a href="/scan-results?access_token={{ access_token }}&repo_url={{ repo.clone_url }}" class="btn">Scan Repository</a>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>
         </main>
-
-        <!-- <footer>
-            <p>&copy; 2024 CodeScan. All rights reserved.</p>
-        </footer> -->
     </div>
 </body>
 </html>

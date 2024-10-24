@@ -10,8 +10,6 @@ import shutil
 import json
 from fastapi.staticfiles import StaticFiles
 
-
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -19,8 +17,6 @@ GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 
 app = FastAPI()
-
-
 
 # Setup templates (you can create an HTML file for form display)
 templates = Jinja2Templates(directory="templates")
@@ -31,13 +27,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Directory to clone repos
 CLONE_DIR = "/tmp/repos"
 
-
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-
-
 
 @app.get("/login/github")
 def github_login():
@@ -45,9 +37,6 @@ def github_login():
         f"https://github.com/login/oauth/authorize?client_id={GITHUB_CLIENT_ID}&scope=repo"
     )
     return RedirectResponse(github_oauth_url)
-
-
-
 
 @app.get("/github/callback")
 def github_callback(code: str):
@@ -68,27 +57,33 @@ def github_callback(code: str):
         return RedirectResponse(f"/repos?access_token={access_token}")
     return {"error": "Failed to authenticate"}
 
-
-
-
 @app.get("/repos")
 def list_user_repos(request: Request, access_token: str):
-    # Step 2: Fetch the user's public repositories
+    # Step 2: Fetch the user's public and private repositories
     repos_url = "https://api.github.com/user/repos"
     headers = {"Authorization": f"token {access_token}"}
     response = requests.get(repos_url, headers=headers)
 
     if response.status_code == 200:
         repos = response.json()
-        return templates.TemplateResponse("repos.html", {"request": request, "repos": repos, "access_token": access_token})
+        
+        # Add the owner, name, visibility, and primary language to the template
+        repo_details = [
+            {
+                "owner": repo["owner"]["login"],
+                "name": repo["name"],
+                "private": repo["private"],
+                "language": repo["language"],
+                "clone_url": repo["clone_url"]
+            }
+            for repo in repos
+        ]
+        return templates.TemplateResponse("repos.html", {"request": request, "repos": repo_details, "access_token": access_token})
     return {"error": "Failed to fetch repositories"}
-
-
-
 
 @app.get("/scan-repo")
 async def scan_repo(access_token: str, repo_url: str):
-    # Now access_token and repo_url will come from query parameters
+    # Extract repo name from URL
     repo_name = repo_url.split("/")[-1].replace(".git", "")
     repo_path = os.path.join(CLONE_DIR, repo_name)
 
@@ -117,24 +112,54 @@ async def scan_repo(access_token: str, repo_url: str):
 
     return {"scan_result": scan_result}
 
-
-
 @app.get("/scan-results", response_class=HTMLResponse)
 async def scan_results(request: Request, access_token: str, repo_url: str):
-    # Get the scan result from the earlier scan function
+    """
+    Get scan results from the repo and fetch repo details from the GitHub API.
+    Return the formatted response for template rendering.
+    """
+
+    # Extract owner and repo name from the URL
+    repo_name_with_owner = repo_url.split("github.com/")[-1].replace(".git", "")
+    repo_owner, repo_name = repo_name_with_owner.split('/')
+
+    # Initialize default values for repo info
+    repo_visibility = "Unknown"
+    repo_language = "Unknown"
+    
+    # GitHub API URL to get repo details
+    headers = {"Authorization": f"token {access_token}"}
+    repo_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
+    
+    # Try fetching repo details from GitHub API
+    try:
+        repo_response = requests.get(repo_api_url, headers=headers)
+        
+        if repo_response.status_code == 200:
+            repo_data = repo_response.json()
+            
+            # Extract repo details
+            repo_visibility = "Private" if repo_data.get("private", False) else "Public"
+            repo_language = repo_data.get("language", "Unknown")
+        else:
+            # Handle failure with a default response or log it
+            print(f"GitHub API Error: {repo_response.status_code} - {repo_response.text}")
+    except Exception as e:
+        # Handle any connection or decoding errors
+        print(f"Exception while fetching repo details: {str(e)}")
+    
+    # Get the scan result from the scan_repo function
     scan_result = await scan_repo(access_token, repo_url)
-
-    # Parse and pretty print the JSON for easier debugging if needed
-    pretty_scan_result = json.dumps(scan_result, indent=4)
-
-    # Pass the full scan result to the template
+    
+    # Pass data to the template
     return templates.TemplateResponse("scan_result.html", {
         "request": request,
-        "scan_result": scan_result,  # Raw scan result for template rendering
-        "pretty_scan_result": pretty_scan_result,  # Optional, if you want to show raw JSON
+        "scan_result": scan_result,
+        "repo_owner": repo_owner,
+        "repo_name": repo_name,
+        "repo_visibility": repo_visibility,
+        "repo_language": repo_language,
     })
-
-
 
 def find_python_files(repo_path: str):
     """Recursively find all Python files in the given repository path."""
@@ -144,10 +169,8 @@ def find_python_files(repo_path: str):
         for file in files:
             if file.endswith(".py"):
                 python_files.append(os.path.join(root, file))
-    print("python_files:::",python_files)
+    print("python_files:::", python_files)
     return python_files
-
-
 
 def run_bandit_scan(repo_path: str):
     try:
@@ -172,7 +195,6 @@ def run_bandit_scan(repo_path: str):
     except Exception as e:
         return {"error": str(e)}
 
-    
 if __name__ == "__main__":
     if not os.path.exists(CLONE_DIR):
         os.makedirs(CLONE_DIR)
@@ -180,4 +202,3 @@ if __name__ == "__main__":
     # Run FastAPI app with uvicorn
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
