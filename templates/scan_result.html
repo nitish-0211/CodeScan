@@ -8,67 +8,87 @@
 </head>
 <body class="dark-theme">
     <header class="header">
-        <!-- <div class="logo">
-            <img src="/static/logo.jpg" alt="Logo">
-        </div> -->
-        
         <h1>Scan Results</h1>
     </header>
-    
+
     <div class="repo-info">
         <h2>Repository: {{ repo_owner }}/{{ repo_name }}</h2>
         <p><strong>Visibility:</strong> {{ repo_visibility }}</p>
         <p><strong>Primary Language:</strong> {{ repo_language }}</p>
     </div>
 
+    {% if error %}
+    <div class="error-message">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
     <div class="container">
-        {% for file_path, file_data in scan_result['scan_result'].items() %}
-        <div class="file-result">
-            <h2>File: {{ file_path }}</h2>
-            
-            {% if file_data.get('generated_at') %}
-                <p><strong>Generated at:</strong> {{ file_data['generated_at'] }}</p>
-            {% endif %}
+        {% for language, files in scan_result.items() %}
+        <div class="language-section">
+            <h2>{{ language | title }} Files</h2>
 
-            {% if file_data.get('metrics') %}
-                <h3>Metrics</h3>
-                <ul>
-                    {% for metric, value in file_data['metrics']['_totals'].items() %}
-                    <li>{{ metric.replace('_', ' ').title() }}: {{ value }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No metrics available for this file.</p>
-            {% endif %}
+            {% if files is mapping %}
+                {% for file_path, file_data in files.items() %}
+                <div class="file-result">
+                    <h3>File: {{ file_path }}</h3>
 
-            {% if file_data.get('results') %}
-                <h3>Vulnerabilities</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Severity</th>
-                            <th>Confidence</th>
-                            <th>Line Number</th>
-                            <th>Issue</th>
-                            <th>More Info</th>
-                            <th>Code Snippet</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for result in file_data['results'] %}
-                        <tr>
-                            <td>{{ result['issue_severity'] }}</td>
-                            <td>{{ result['issue_confidence'] }}</td>
-                            <td>{{ result['line_number'] }}</td>
-                            <td>{{ result['issue_text'] }}</td>
-                            <td><a href="{{ result['more_info'] }}" target="_blank">Learn more</a></td>
-                            <td><pre>{{ result['code'] }}</pre></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                    {% if file_data is mapping %}
+                        {% if file_data.get('generated_at') %}
+                            <p><strong>Generated at:</strong> {{ file_data['generated_at'] }}</p>
+                        {% endif %}
+
+                        {% if file_data.get('metrics') and file_data['metrics'].get('_totals') %}
+                            <h4>Metrics</h4>
+                            <ul>
+                                {% for metric, value in file_data['metrics']['_totals'].items() %}
+                                <li>{{ metric.replace('_', ' ').title() }}: {{ value }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if file_data.get('results') %}
+                            <h4>Vulnerabilities</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Severity</th>
+                                        <th>Confidence</th>
+                                        <th>Line Number</th>
+                                        <th>Issue</th>
+                                        <th>More Info</th>
+                                        <th>Code Snippet</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in file_data['results'] %}
+                                    <tr>
+                                        <td>{{ result.get('issue_severity', '-') }}</td>
+                                        <td>{{ result.get('issue_confidence', '-') }}</td>
+                                        <td>{{ result.get('line_number', '-') }}</td>
+                                        <td>{{ result.get('issue_text', '-') }}</td>
+                                        <td>
+                                            {% if result.get('more_info') %}
+                                                <a href="{{ result['more_info'] }}" target="_blank">Learn more</a>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td><pre>{{ result.get('code', '') }}</pre></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>No vulnerabilities found in this file.</p>
+                        {% endif %}
+                    {% else %}
+                        <p><strong>Scan Error:</strong> {{ file_data }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
             {% else %}
-                <p>No vulnerabilities found in this file.</p>
+                <p>No scan data found for {{ language }} files.</p>
             {% endif %}
         </div>
         {% endfor %}
