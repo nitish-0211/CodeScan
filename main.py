@@ -9,11 +9,14 @@ import subprocess
 import shutil
 import json
 from fastapi.staticfiles import StaticFiles
+from urllib.parse import urlencode
 
 load_dotenv()
 
+
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI")
 
 app = FastAPI()
 
@@ -32,26 +35,34 @@ def home(request: Request):
 
 @app.get("/login/github")
 def github_login():
-    github_oauth_url = (
-        f"https://github.com/login/oauth/authorize?client_id={GITHUB_CLIENT_ID}&scope=repo"
-    )
+    params = {
+        "client_id": GITHUB_CLIENT_ID,
+        "redirect_uri": GITHUB_REDIRECT_URI,
+        "scope": "repo"
+    }
+    github_oauth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(github_oauth_url)
+
 
 
 @app.get("/github/callback")
 def github_callback(code: str):
     token_url = "https://github.com/login/oauth/access_token"
-    headers = {"Accept": "application/json"}
-    payload = {
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
         "client_id": GITHUB_CLIENT_ID,
         "client_secret": GITHUB_CLIENT_SECRET,
-        "code": code
+        "code": code,
+        "redirect_uri": GITHUB_REDIRECT_URI
     }
 
-    response = requests.post(token_url, headers=headers, data=payload)
-    response_json = response.json()
-    access_token = response_json.get("access_token")
+    token_response = requests.post(token_url, headers=headers, data=data)
 
+    response_json = token_response.json()
+    access_token = response_json.get("access_token")
     if access_token:
         return RedirectResponse(f"/repos?access_token={access_token}")
     return {"error": "Failed to authenticate"}
